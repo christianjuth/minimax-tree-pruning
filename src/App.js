@@ -6,6 +6,7 @@ import styled from 'styled-components'
 import { use100vh } from 'react-div-100vh'
 import { v4 as uuid } from 'uuid'
 import * as indentation from 'indent-textarea';
+import GitHubForkRibbon from 'react-github-fork-ribbon';
 
 const Page = styled.div`
   display: flex;
@@ -20,6 +21,7 @@ const TextArea = styled.textarea`
   font-family: ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace;
   padding: 15px;
   background-color: transparent;
+  resize: none;
 `
 
 const FlexRow = styled.div`
@@ -198,6 +200,13 @@ function App() {
 
   return (
     <Page style={{minHeight: windowHeight}}>
+      <GitHubForkRibbon 
+        href="//github.com/christianjuth/minimax-tree-pruning"
+        target="_blank"
+        position="right"
+      >
+        Fork me on GitHub
+      </GitHubForkRibbon>
       <TextArea
         ref={textAreaRef}
         value={treeString}
