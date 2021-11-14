@@ -8,17 +8,18 @@ import { v4 as uuid } from 'uuid'
 import * as indentation from 'indent-textarea';
 
 const Page = styled.div`
-  height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: black;
+  color: white;
 `
 
 const TextArea = styled.textarea`
   flex: 1;
-  background-color: black;
   color: white;
   font-family: ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace;
   padding: 15px;
+  background-color: transparent;
 `
 
 const FlexRow = styled.div`
@@ -28,6 +29,11 @@ const FlexRow = styled.div`
 
 const FlexGrow = styled.div`
   flex: 1;
+`
+
+const Span = styled.span`
+  margin-left: 10px;
+  color: rgba(255,255,255,0.7)
 `
 
 function node(name, childrenOrValue = 0) {
@@ -111,7 +117,7 @@ function minimax(direction = '', node, isMax = true, alpha = Number.MIN_SAFE_INT
   }
 }
 
-function render(node, color = 'black') {
+function render(node, color = 'white') {
   if (node.children.length === 0) {
     return {
       ...node,
@@ -143,7 +149,7 @@ function App() {
   const [[height, width], setDimensions] = useState([windowHeight,400])
   const [direction, setDirection] = useState('')
   const [treeString, setTreeString] = useState(null)
-  const [startWithMax, setStartWithMax] = useState(true)
+  const [startWith, setStartWith] = useState('max')
 
   useEffect(() => {
     setTreeString(getSavedTree())
@@ -154,8 +160,8 @@ function App() {
       if (treeString !== null) {
         try {
           const tree = eval(treeString)
-          minimax(direction, tree, startWithMax)
-          tree.name = (startWithMax ? 'Max: ' : 'Min: ') + tree.name
+          minimax(direction, tree, startWith === 'max')
+          tree.name = `${startWith}: ${tree.name}`
           saveTree(treeString)
           return render(tree)
         } catch (e) {
@@ -164,13 +170,13 @@ function App() {
       }
       return node('A', 0)
     },
-    [direction, treeString, startWithMax]
+    [direction, treeString, startWith]
   )
 
 
   useEffect(() => {
     function updateDimensions() {
-      setDimensions([windowHeight/2, window.innerWidth-50])
+      setDimensions([windowHeight/2, window.innerWidth])
     }
     updateDimensions()
     window.addEventListener('resize', updateDimensions)
@@ -191,28 +197,33 @@ function App() {
   }, [])
 
   return (
-    <Page>
+    <Page style={{minHeight: windowHeight}}>
       <TextArea
         ref={textAreaRef}
         value={treeString}
         onChange={e => setTreeString(e.target.value)}
       />
       <FlexRow>
-        <button onClick={() => setStartWithMax(b => !b)}>Start with: {startWithMax ? 'max' : 'min'}</button>
-        <button onClick={() => setDirection()}>No pruning</button>
-        <button onClick={() => setDirection('ltr')}>Ltr pruning</button>
-        <button onClick={() => setDirection('rtl')}>Rtl pruning</button>
+        <select value={startWith} onChange={e => setStartWith(e.target.value)}>
+          <option value='min'>Start with: min</option>
+          <option value='max'>Start with: max</option>
+        </select>
+        <select value={direction} onChange={e => setDirection(e.target.value)}>
+          <option value="">Pruning: none</option>
+          <option value="ltr">Pruning: ltr</option>
+          <option value="rtl">Pruning: rtl</option>
+        </select>
         <FlexGrow/>
         <button onClick={() => setTreeString(DEFAULT_TREE)}>Reset tree</button>
       </FlexRow>
-      <i>Right</i>
+      <Span><i>Right</i></Span>
       <Tree
         data={data}
         height={height}
         width={width}
         keyProp='id'
       />
-      <i>Left</i>
+      <Span><i>Left</i></Span>
     </Page>
   );
 }

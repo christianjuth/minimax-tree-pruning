@@ -2,6 +2,14 @@ svg text {
   transform: translate(-10px, 17px);
 }
 
+path.link {
+  stroke: white;
+}
+
+.node-white {
+  fill: white;
+}
+
 .node-red {
 	fill: red;
 }

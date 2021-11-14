@@ -9310,11 +9310,6 @@ react-tree-graph@^6.0.1:
     d3-hierarchy "^2.0.0"
     prop-types "^15.5.7"
 
-react-tree-renderer@^2.0.8:
-  version "2.0.8"
-  resolved "https://registry.yarnpkg.com/react-tree-renderer/-/react-tree-renderer-2.0.8.tgz#a50e2b3422b4e84730e64125dd500094402cadd5"
-  integrity sha512-YP3i9wVDAngcq5Pj4GYe1RSsact3ZyQcllL61emZkHyNvSPx3gnwAtME0zUcNua9rM33a4wQY2s4ssp1nrIqFg==
-
 react@^17.0.2:
   version "17.0.2"
   resolved "https://registry.yarnpkg.com/react/-/react-17.0.2.tgz#d0b5cc516d29eb3eee383f75b62864cfb6800037"
