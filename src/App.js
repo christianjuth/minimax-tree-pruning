@@ -146,6 +146,19 @@ function getSavedTree() {
   return localStorage.getItem('tree') ?? DEFAULT_TREE 
 }
 
+/**
+ * This function is modified from the following SO answer
+ * https://stackoverflow.com/a/67102501/3052484 
+ */
+function maskedEval(src,ctx={}) {
+  ctx = new Proxy(ctx,{
+    has:()=>true
+  })
+  // execute script in private context
+  let func = (new Function( "with(this) { return " + src + "}"));
+  return func.call(ctx);
+}
+
 function App() {
   const windowHeight = use100vh() ?? 0
   const [[height, width], setDimensions] = useState([windowHeight,400])
@@ -161,7 +174,7 @@ function App() {
     () => {
       if (treeString !== null) {
         try {
-          const tree = eval(treeString)
+          const tree = maskedEval(treeString, { node })
           minimax(direction, tree, startWith === 'max')
           tree.name = `${startWith}: ${tree.name}`
           saveTree(treeString)
@@ -209,7 +222,7 @@ function App() {
       </GitHubForkRibbon>
       <TextArea
         ref={textAreaRef}
-        value={treeString}
+        value={treeString ?? ''}
         onChange={e => setTreeString(e.target.value)}
       />
       <FlexRow>
