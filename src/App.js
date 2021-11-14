@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Tree from 'react-tree-graph';
 import 'react-tree-graph/dist/style.css'
 import './App.css'
 import styled from 'styled-components'
 import { use100vh } from 'react-div-100vh'
+import { v4 as uuid } from 'uuid'
+import * as indentation from 'indent-textarea';
 
 const Page = styled.div`
   height: 100vh;
@@ -16,6 +18,7 @@ const TextArea = styled.textarea`
   background-color: black;
   color: white;
   font-family: ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace;
+  padding: 15px;
 `
 
 const FlexRow = styled.div`
@@ -23,7 +26,11 @@ const FlexRow = styled.div`
   flex-direction: row;
 `
 
-function node(name, childrenOrValue) {
+const FlexGrow = styled.div`
+  flex: 1;
+`
+
+function node(name, childrenOrValue = 0) {
   let children = []
   let value = null
 
@@ -37,32 +44,32 @@ function node(name, childrenOrValue) {
   return {
     name,
     value,
-    children
+    children,
+    id: uuid(),
+    keyProp: 'id'
   }
 }
 
-const DEFAULT_TREE = `
-  node('A', [
-    node('B', [
-      node('D', 3),
-      node('E', 5)
+const DEFAULT_TREE = `node('A', [
+  node('B', [
+    node('D', 3),
+    node('E', 5)
+  ]),
+  node('C', [
+    node('F', [
+      node('I', [
+        node('M', 0),
+        node('N', 7)
+      ]),
+      node('J', 5)
     ]),
-    node('C', [
-      node('F', [
-        node('I', [
-          node('M', 0),
-          node('N', 7)
-        ]),
-        node('J', 5)
-      ]),
-      node('G', [
-        node('K', 7),
-        node('L', 8)
-      ]),
-      node('H', 4)
-    ])
+    node('G', [
+      node('K', 7),
+      node('L', 8)
+    ]),
+    node('H', 4)
   ])
-`
+])`
 
 function minimax(direction = '', node, alpha = Number.MIN_SAFE_INTEGER, beta = Number.MAX_SAFE_INTEGER, isMax = true) {
   if (node.value !== null) {
@@ -113,7 +120,7 @@ function render(node, color = 'black') {
       }
     }
   } 
-  const children = node.children.slice(0).reverse().map(node => render(node, node.color ?? color))
+  const children = node.children.map(node => render(node, node.color ?? color))
   return {
     ...node,
     children,
@@ -123,26 +130,41 @@ function render(node, color = 'black') {
   }
 }
 
+function saveTree(data) {
+  localStorage.setItem('tree', data)
+}
+
+function getSavedTree() {
+  return localStorage.getItem('tree') ?? DEFAULT_TREE 
+}
+
 function App() {
   const windowHeight = use100vh() ?? 0
   const [[height, width], setDimensions] = useState([windowHeight,400])
   const [direction, setDirection] = useState('')
-  const [treeString, setTreeString] = useState(DEFAULT_TREE)
+  const [treeString, setTreeString] = useState(null)
+
+  useEffect(() => {
+    setTreeString(getSavedTree())
+  }, [])
 
   const data = useMemo(
     () => {
-      let tree
-      try {
-        tree = eval(treeString)
-        minimax(direction, tree)
-      } catch (e) {
-        tree = node('A', 0)
+      if (treeString !== null) {
+        try {
+          const tree = eval(treeString)
+          minimax(direction, tree)
+          saveTree(treeString)
+          return render(tree)
+        } catch (e) {
+          console.log(e)
+        }
       }
-
-      return render(tree)
+      return node('A', 0)
     },
     [direction, treeString]
   )
+
 
   useEffect(() => {
     function updateDimensions() {
@@ -155,22 +177,39 @@ function App() {
     }
   }, [windowHeight])
 
+  const textAreaRef = useRef(null)
+  useEffect(() => {
+    const textArea = textAreaRef.current
+    if (textArea) {
+      textArea.addEventListener('keydown', indentation.eventHandler);
+      return () => {
+        textArea.removeEventListener('keydown', indentation.eventHandler);
+      }
+    }
+  }, [])
+
   return (
     <Page>
       <TextArea
+        ref={textAreaRef}
         value={treeString}
         onChange={e => setTreeString(e.target.value)}
       />
       <FlexRow>
         <button onClick={() => setDirection()}>No pruning</button>
-        <button onClick={() => setDirection('rtl')}>Rtl pruning</button>
         <button onClick={() => setDirection('ltr')}>Ltr pruning</button>
+        <button onClick={() => setDirection('rtl')}>Rtl pruning</button>
+        <FlexGrow/>
+        <button onClick={() => setTreeString(DEFAULT_TREE)}>Reset tree</button>
       </FlexRow>
+      <i>Right</i>
       <Tree
         data={data}
         height={height}
         width={width}
+        keyProp='id'
       />
+      <i>Left</i>
     </Page>
   );
 }
