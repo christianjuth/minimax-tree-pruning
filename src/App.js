@@ -71,7 +71,7 @@ const DEFAULT_TREE = `node('A', [
   ])
 ])`
 
-function minimax(direction = '', node, alpha = Number.MIN_SAFE_INTEGER, beta = Number.MAX_SAFE_INTEGER, isMax = true) {
+function minimax(direction = '', node, isMax = true, alpha = Number.MIN_SAFE_INTEGER, beta = Number.MAX_SAFE_INTEGER) {
   if (node.value !== null) {
     return node.value
   } else {
@@ -89,7 +89,7 @@ function minimax(direction = '', node, alpha = Number.MIN_SAFE_INTEGER, beta = N
         continue;
       }
 
-      const evaluation = minimax(direction, child, alpha, beta, !isMax)
+      const evaluation = minimax(direction, child, !isMax, alpha, beta)
       values.push(evaluation)
       if (isMax) {
         alpha = Math.max(alpha, evaluation)
@@ -143,6 +143,7 @@ function App() {
   const [[height, width], setDimensions] = useState([windowHeight,400])
   const [direction, setDirection] = useState('')
   const [treeString, setTreeString] = useState(null)
+  const [startWithMax, setStartWithMax] = useState(true)
 
   useEffect(() => {
     setTreeString(getSavedTree())
@@ -153,7 +154,8 @@ function App() {
       if (treeString !== null) {
         try {
           const tree = eval(treeString)
-          minimax(direction, tree)
+          minimax(direction, tree, startWithMax)
+          tree.name = (startWithMax ? 'Max: ' : 'Min: ') + tree.name
           saveTree(treeString)
           return render(tree)
         } catch (e) {
@@ -162,7 +164,7 @@ function App() {
       }
       return node('A', 0)
     },
-    [direction, treeString]
+    [direction, treeString, startWithMax]
   )
 
 
@@ -196,6 +198,7 @@ function App() {
         onChange={e => setTreeString(e.target.value)}
       />
       <FlexRow>
+        <button onClick={() => setStartWithMax(b => !b)}>Start with: {startWithMax ? 'max' : 'min'}</button>
         <button onClick={() => setDirection()}>No pruning</button>
         <button onClick={() => setDirection('ltr')}>Ltr pruning</button>
         <button onClick={() => setDirection('rtl')}>Rtl pruning</button>
